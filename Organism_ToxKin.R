@@ -1,13 +1,13 @@
 
-.libPaths("M:/My Documents/R/win-library/4.2") # .libPaths("M:/My Documents/R/win-library/3.6") 
+.libPaths("M:/My Documents/R/win-library/4.2") # Adjust if needed
 library(nlme)
 library(gridExtra)
 library(ggplot2)
 
-setwd('C:/Users/linge006/OneDrive - Wageningen University & Research/Documenten/WUR_HOME/Diagonal/Del 4.8/Experiment ZnOMn & Mn/Chemical analysis')
+setwd('...') # Set your working directory
 
 ### Read data
-#dataset <- "Gpulex"
+dataset <- "Gpulex"
 #dataset <- "ChRiparius"
 #dataset <- "Fcandida_Cu01"
 #dataset <- "Fcandida_Cu02"
@@ -31,15 +31,6 @@ if (dataset=="Fcandida_Cd02") {toxkin_dat <- read.csv("Fcandida_Cd_Ardestani2013
 if (dataset=="Fcandida_Cd03") {toxkin_dat <- read.csv("Fcandida_Cd_Ardestani2013_03.txt", sep=",", header=T)
   start_nls <- list(C_0=1, k_1=0.618, k_2=0.037); toxic <- "Cd"; t_scale <- "_d"; t_d <- 21}
 
-dataset <- 'Algae_Zn_4n4'
-dataset <- 'Algae_Zn_4n6'
-dataset <- 'Algae_Mn_4n6'
-if (dataset=="Algae_Zn_4n4") {toxkin_dat <- read.csv("toxicodynamics4n4v2.txt", sep="\t", header=T)
-start_nls <- list(C_0=1, k_1=0.618, k_2=0.037); toxic <- "Zn"; t_scale <- "_d"; t_d <- 48}
-if (dataset=="Algae_Zn_4n6") {toxkin_dat <- read.csv("toxicodynamics4n6vZn.txt", sep="\t", header=T)
-start_nls <- list(C_0=1, k_1=0.618, k_2=0.037); toxic <- "Zn"; t_scale <- "_d"; t_d <- 48}
-if (dataset=="Algae_Mn_4n6") {toxkin_dat <- read.csv("toxicodynamics4n6vZnMn.txt", sep="\t", header=T)
-start_nls <- list(C_0=1, k_1=0.618, k_2=0.037); toxic <- "Mn"; t_scale <- "_d"; t_d <- 48}
 
 # One compartmental model function
 
@@ -415,31 +406,6 @@ write.csv(summary(stan_toxic_Exp_out.rs)$summary,paste0(dataset,'_toxkin_Exp_STA
 write.csv(summary(stan_toxic_Pow_out.rs)$summary,paste0(dataset,'_toxkin_Pow_STAN.csv')) # For toxicant 
 
 
-#pairs(stan_toxic_out.rs, pars = pars_out_no_d[1:5])
-#pairs(stan_toxic_Fix_out.rs, pars = pars_out_no_d[1:5])
-#pairs(stan_toxic_Exp_out.rs, pars = pars_out_d[1:5])
-#pairs(stan_toxic_Pow_out.rs, pars = c("C_0","k_1","k_2","BAF","delta","sigma_e[1]"))
-
-
-#pdf('Zn_Mn_worms_RSTAN_pairs.pdf', height=8.5, width=11)
-#mcmc_pairs(posterior_cp, pars = c("C_0","k_1","k_2","BAF","sigma_e[1]"),
-#          off_diag_args = list(size = 0.75))
-#dev.off()
-
-#pdf(paste0(dataset,'_pairs.pdf'), height=8.5, width=13) #
-#png(paste0(dataset,'_pairs.png'), height=8.5, width=13, res=300, units="in")
-#mcmc_pairs(as.array(stan_toxic_out.rs), pars = c("C_0","k_1","k_2","BAF","sigma_e[1]"),
- #          off_diag_args = list(size = 0.75))
-#mcmc_pairs(as.array(stan_toxic_Id_out.rs), pars = c("C_0","k_1","k_2","BAF","sigma_e[1]","sigma_e[2]"),
- #          off_diag_args = list(size = 0.75))
-#mcmc_pairs(as.array(stan_toxic_Fix_out.rs), pars = c("C_0","k_1","k_2","BAF","sigma_e[1]"),
- #          off_diag_args = list(size = 0.75))
-#mcmc_pairs(as.array(stan_toxic_Exp_out.rs), pars = c("C_0","k_1","k_2","BAF","delta","sigma_e[1]"),
- #          off_diag_args = list(size = 0.75))
-#mcmc_pairs(as.array(stan_toxic_Pow_out.rs), pars = c("C_0","k_1","k_2","BAF","delta","sigma_e[1]"),
- #          off_diag_args = list(size = 0.75))
-#dev.off()
-
 # Write chains to files
 dev.off()
 pdf(paste0('Chains_',toxic,'_',dataset,'.pdf'), height=7, width=10) # ,units='in',res=600,compression='lzw'
@@ -463,16 +429,9 @@ plot_res(stan_toxic_Pow_out.rs, hsk="varPow", "varPow", y_lim=3, x_lim=x_range, 
 dev.off()
 
 ###
-x_range <- 0:max(toxkin_dat$Time)
-y_vs_x <- data.frame(var_x=x_range,
-                     var_toxicant = one_compartment(coef(toxicant.gnls_Exp)[1],coef(toxicant.gnls_Exp)[2],coef(toxicant.gnls_Exp)[3], 
-                                                      C_expsr,x_range))
-
-p1 <- ggplot(data=toxkin_dat, aes(y=toxicant,x=Time)) + geom_point(color='black') +
-  geom_line(data=y_vs_x, aes(var_x, var_toxicant, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle(paste0(toxic," exposure")) + 
-  ylab(expression("Toxicant content in"~paste("ng/g"))) + xlab("")
 
 # Generate fitted model and data Figure
+x_range <- 0:max(toxkin_dat$Time)
 y_vs_x <- data.frame(var_x=x_range,
                      Homosk = one_compartment(summ_toxic_rs['C_0','mean'],summ_toxic_rs['k_1','mean'],summ_toxic_rs['k_2','mean'],C_expsr,x_range),
                      var_Id = one_compartment(summ_toxic_Id_rs['C_0','mean'],summ_toxic_Id_rs['k_1','mean'],summ_toxic_Id_rs['k_2','mean'],C_expsr,x_range),
