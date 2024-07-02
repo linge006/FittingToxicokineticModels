@@ -246,17 +246,17 @@ write.csv(summary(stan_toxic_Pow_out.rs)$summary,paste0(dataset,'_toxkin_Pow_STA
 
 
 # Write residual plots to file
-x_range <- range(predict(toxicant.nls)); y_range <- 3 # Set ranges for x-axis (fitted value) based on nls model predicted values and y-axis (residuals) 
-if (grepl("Fcandida",dataset)) x_range[1] <- 0  # Adjust x-axis lower limit to 0 for Fcandida datasets
+t_range <- range(predict(toxicant.nls)); y_range <- 3 # Set ranges for x-axis (fitted value) based on nls model predicted values and y-axis (residuals) 
+if (grepl("Fcandida",dataset)) t_range[1] <- 0  # Adjust x-axis lower limit to 0 for Fcandida datasets
 
 # Save Figure with 2x3 panels to file
 pdf(paste0('Res_STAN_',dataset,'.pdf'), height=6.5, width=10)
 par(mfrow=c(2,3))
-plot_RSTAN_res(stan_toxic_out.rs, hsk=FALSE, "Homoscedastic", y_lim=y_range, x_lim=x_range, y_ij=toxkin_dat$toxicant)
-plot_RSTAN_res(stan_toxic_Id_out.rs, hsk="varId", "varId", y_lim=y_range, x_lim=x_range, y_ij=toxkin_dat$toxicant, y_lab="", phase=toxkin_dat$phase)
-plot_RSTAN_res(stan_toxic_Fix_out.rs, hsk="varFix", "varFix", y_lim=y_range, x_lim=x_range, y_ij=toxkin_dat$toxicant)
-plot_RSTAN_res(stan_toxic_Exp_out.rs, hsk="varExp", "varExp", y_lim=y_range, x_lim=x_range, y_lab="", x_lab="Fitted values", y_ij=toxkin_dat$toxicant)
-plot_RSTAN_res(stan_toxic_Pow_out.rs, hsk="varPow", "varPow", y_lim=y_range, x_lim=x_range, y_lab="", y_ij=toxkin_dat$toxicant)
+plot_RSTAN_res(stan_toxic_out.rs, hsk=FALSE, "Homoscedastic", y_lim=y_range, x_lim=t_range, y_ij=toxkin_dat$toxicant)
+plot_RSTAN_res(stan_toxic_Id_out.rs, hsk="varId", "varId", y_lim=y_range, x_lim=t_range, y_ij=toxkin_dat$toxicant, y_lab="", phase=toxkin_dat$phase)
+plot_RSTAN_res(stan_toxic_Fix_out.rs, hsk="varFix", "varFix", y_lim=y_range, x_lim=t_range, y_ij=toxkin_dat$toxicant)
+plot_RSTAN_res(stan_toxic_Exp_out.rs, hsk="varExp", "varExp", y_lim=y_range, x_lim=t_range, y_lab="", x_lab="Fitted values", y_ij=toxkin_dat$toxicant)
+plot_RSTAN_res(stan_toxic_Pow_out.rs, hsk="varPow", "varPow", y_lim=y_range, x_lim=t_range, y_lab="", y_ij=toxkin_dat$toxicant)
 dev.off()
 
 
@@ -297,35 +297,35 @@ t_range <- 0:max(toxkin_dat$Time)
 # Create a data.frame named y_vs_t for the 5 different models, toxicant values are generated using the one_compartment() model function and 
   # the estimated RSTAN model coefficients are inputs along with the generated sequence of numbers and C_expsr (medium exposure concentration)
 y_vs_t <- data.frame(var_t=t_range,
-                     Homosk = one_compartment(summ_toxic_rs['C_0','mean'],summ_toxic_rs['k_1','mean'],summ_toxic_rs['k_2','mean'],C_expsr,x_range),
-                     var_Id = one_compartment(summ_toxic_Id_rs['C_0','mean'],summ_toxic_Id_rs['k_1','mean'],summ_toxic_Id_rs['k_2','mean'],C_expsr,x_range),
-                     var_Fix = one_compartment(summ_toxic_Fix_rs['C_0','mean'],summ_toxic_Fix_rs['k_1','mean'],summ_toxic_Fix_rs['k_2','mean'],C_expsr,x_range),
-                     var_Exp = one_compartment(summ_toxic_Exp_rs['C_0','mean'],summ_toxic_Exp_rs['k_1','mean'],summ_toxic_Exp_rs['k_2','mean'],C_expsr,x_range),
-                     var_Pow = one_compartment(summ_toxic_Pow_rs['C_0','mean'],summ_toxic_Pow_rs['k_1','mean'],summ_toxic_Pow_rs['k_2','mean'],C_expsr,x_range))
+                     Homosk = one_compartment(summ_toxic_rs['C_0','mean'],summ_toxic_rs['k_1','mean'],summ_toxic_rs['k_2','mean'],C_expsr,t_range),
+                     var_Id = one_compartment(summ_toxic_Id_rs['C_0','mean'],summ_toxic_Id_rs['k_1','mean'],summ_toxic_Id_rs['k_2','mean'],C_expsr,t_range),
+                     var_Fix = one_compartment(summ_toxic_Fix_rs['C_0','mean'],summ_toxic_Fix_rs['k_1','mean'],summ_toxic_Fix_rs['k_2','mean'],C_expsr,t_range),
+                     var_Exp = one_compartment(summ_toxic_Exp_rs['C_0','mean'],summ_toxic_Exp_rs['k_1','mean'],summ_toxic_Exp_rs['k_2','mean'],C_expsr,t_range),
+                     var_Pow = one_compartment(summ_toxic_Pow_rs['C_0','mean'],summ_toxic_Pow_rs['k_1','mean'],summ_toxic_Pow_rs['k_2','mean'],C_expsr,t_range))
 
 # Generate ggplot2 for homoscedastic model
 p4 <- ggplot(data=toxkin_dat, aes(y=toxicant,x=Time)) + geom_point(color='black') +
-  geom_line(data=y_vs_x, aes(var_t, Homosk, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle("Homoscedastic variance") + 
+  geom_line(data=y_vs_t, aes(var_t, Homosk, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle("Homoscedastic variance") + 
   ylab(expression("Toxicant content in"~paste("ng/g"))) + xlab("")
 
 # Generate ggplot2 for varId model
 p8 <- ggplot(data=toxkin_dat, aes(y=toxicant,x=Time)) + geom_point(color='black') +
-  geom_line(data=y_vs_x, aes(var_t, var_Id, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle("Id variance") + 
+  geom_line(data=y_vs_t, aes(var_t, var_Id, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle("Id variance") + 
   ylab(expression("Toxicant content in"~paste("ng/g"))) + xlab("")
 
 # Generate ggplot2 for varFixed model
 p5 <- ggplot(data=toxkin_dat, aes(y=toxicant,x=Time)) + geom_point(color='black') +
-  geom_line(data=y_vs_x, aes(var_t, var_Fix, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle("Fixed variance") + 
+  geom_line(data=y_vs_t, aes(var_t, var_Fix, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle("Fixed variance") + 
   ylab(expression("Toxicant content in"~paste("ng/g"))) + xlab("")
 
 # Generate ggplot2 for varExp model
 p6 <- ggplot(data=toxkin_dat, aes(y=toxicant,x=Time)) + geom_point(color='black') +
-  geom_line(data=y_vs_x, aes(var_t, var_Exp, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle("Exponential variance") + 
+  geom_line(data=y_vs_t, aes(var_t, var_Exp, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle("Exponential variance") + 
   ylab(expression("Toxicant content in"~paste("ng/g"))) + xlab("")
 
 # Generate ggplot2 for varPower model
 p7 <- ggplot(data=toxkin_dat, aes(y=toxicant,x=Time)) + geom_point(color='black') +
-  geom_line(data=y_vs_x, aes(var_t, var_Pow, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle("Power variance") + 
+  geom_line(data=y_vs_t, aes(var_t, var_Pow, color = "black"), lwd=1) + theme(legend.position="none") + ggtitle("Power variance") + 
   ylab(expression("Toxicant content in"~paste("ng/g"))) + xlab("")
 
 grid.arrange(p4, p8, p5, p6, p7,
@@ -342,7 +342,7 @@ dev.off()
 # ggtitle(paste0(toxic, " exposure")) sets the title of the plot to the string concatenated from the toxic variable and " exposure", 
 # ylab(expression("Content in" ~ paste(mu, g, "/g"))) sets the y-axis label to "Content in Âµg/g" using the expression function to properly format the Greek letter mu (and the unit "g/g".
 
-p1 <- ggplot(data=y_vs_x, aes(x=x_range)) + 
+p1 <- ggplot(data=y_vs_t, aes(x=x_range)) + 
   geom_line(aes(y = Homosk, colour = "Homoscedastic"), linewidth=1) + 
   geom_line(aes(y = var_Id, colour = "var Id"), linewidth=1) +
   geom_line(aes(y = var_Fix, colour = "var Fixed"), linewidth=1) +
