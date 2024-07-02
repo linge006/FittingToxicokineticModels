@@ -342,7 +342,7 @@ dev.off()
 # ggtitle(paste0(toxic, " exposure")) sets the title of the plot to the string concatenated from the toxic variable and " exposure", 
 # ylab(expression("Content in" ~ paste(mu, g, "/g"))) sets the y-axis label to "Content in Âµg/g" using the expression function to properly format the Greek letter mu (and the unit "g/g".
 
-p1 <- ggplot(data=y_vs_t, aes(x=x_range)) + 
+p1 <- ggplot(data=y_vs_t, aes(x=t_range)) + 
   geom_line(aes(y = Homosk, colour = "Homoscedastic"), linewidth=1) + 
   geom_line(aes(y = var_Id, colour = "var Id"), linewidth=1) +
   geom_line(aes(y = var_Fix, colour = "var Fixed"), linewidth=1) +
