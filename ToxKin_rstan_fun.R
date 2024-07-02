@@ -198,7 +198,7 @@ Run_RSTAN_ToxKin_mod <- function(stan_mod,datafile,var_y,var_z,var_t,parms_out,p
                  mean_k1=priors[["k_1","Value"]], sd_k1=priors["k_1","Std.Error"], 
                  mean_k2=priors[["k_2","Value"]], sd_k2=priors["k_2","Std.Error"]) # Prepare data object for stan model, which should be a list
   print(rs.dat$y) # Print toxicant concentration values
-  print(paste0(var_y," data from experiment initialized, RSTAN runs a simulated that started at: ",Sys.time()," ...")) # Notify user that RSTAN simulation starts
+  print(paste0(var_y," data from experiment initialized, RSTAN runs a simulation that started at: ",Sys.time()," ...")) # Notify user that RSTAN simulation starts
   return(sampling(stan_mod, data=rs.dat, iter=niter,
                   pars=parms_out, warmup=burnin, thin=25, chains=n_chains)) # Run and return the RSTAN Bayesian model fit object
 } # End Run_RSTAN_ToxKin_mod()
