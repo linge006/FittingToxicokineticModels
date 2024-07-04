@@ -60,8 +60,8 @@ toxkin_dat$C_exp[toxkin_dat$Time > t_d] <- C_expsr # Assign mean exposure concen
 
 head(toxkin_dat) # Show head of data object
 
-# Initialize the one_compartment() and compute_BAF() functions
-source("ToxKin_gnls_fun.R")
+# Initialize the one_compartment() and compute_BAF() functions and load the nlme package
+source("ToxKin_gnls_fun.R") 
 
 # Fitting of a nonlinear least squares (nls) model to the data
 # the response variable toxicant is modeled using the one_compartment function with parameters C_0, k_1, k_2 and variables C_exp and Time.
@@ -192,7 +192,8 @@ toxicant.nls <- nls(toxicant~one_compartment(C_0,k_1,k_2,C_exp,Time),
 ### RSTAN code for fitting Bayesian models ####
 ### ### ### ### ### ### ### ### ### ### ### ### 
 
-# Run and initialize the RSTAN models and additional R functions
+# Run and initialize the RSTAN models and additional R functions; load the rstan, loo and bayesplot packages
+# Note the comments related to the installation of rstan in "ToxKin_rstan_fun.R"
 source("ToxKin_rstan_fun.R")
 
 toxkin_dat <- data.frame(toxkin_dat, phase_no=NA) # Create extra column in data.frame for toxicokinetic phases. These should be integers in STAN
