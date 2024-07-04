@@ -1,10 +1,10 @@
 
-.libPaths("M:/My Documents/R/win-library/4.2") # Adjust .libPaths if needed
+#.libPaths("M:/My Documents/R/win-library/4.2") # Adjust .libPaths if needed
 library(gridExtra)
 library(ggplot2)
 
 # Adjust to your working directory
-setwd('C:/Users/linge006/OneDrive - Wageningen University & Research/Documenten/WUR_HOME/Diagonal/Del 4.8/Experiment ZnOMn & Mn/Chemical analysis')
+# setwd('C:/Users/linge006...')
 
 ### Read data of interest (make sure one '#' is removed)
 #dataset <- "Gpulex"
