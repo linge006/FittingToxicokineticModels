@@ -371,7 +371,7 @@ write.table("varPower", file_name, col.names=F, row.names=F, append=T)
 write.table(loo_varPow$estimates, file_name, col.names=F, append=T, sep=",")
 
 
-# Red posteriors and posterior predictive distributions from files
+# Read posteriors and posterior predictive distributions from files
 mod_homsc <- read.csv(paste0(dataset,'_toxkin_STAN.csv'),row.names=1)
 mod_hetsc <- read.csv(paste0(dataset,'_toxkin_Id_STAN.csv'),row.names=1)
 mod_hetsc02 <- read.csv(paste0(dataset,'_toxkin_Exp_STAN.csv'),row.names=1)
