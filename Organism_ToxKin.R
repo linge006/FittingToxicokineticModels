@@ -80,9 +80,7 @@ toxicant.nls <- nls(toxicant~one_compartment(C_0,k_1,k_2,C_exp,Time),
 
 # If frequentist==T, then residual variance models will be fitted using frequentist (non-Bayesian) statistics
 # Otherwise, the user may proceed with fitting models in a Bayesian framework
-Frequentist <- TRUE 
 
-if (Frequentist==TRUE){
   toxicant.gnls <- gnls(toxicant~one_compartment(C_0,k_1,k_2,C_exp,Time), start=as.list(coef(toxicant.nls)), 
                        weights=NULL, 
                        data=toxkin_dat); summary(toxicant.gnls) # only one sigma^2 is estimated
@@ -188,7 +186,6 @@ if (Frequentist==TRUE){
   pdf(paste0(dataset,"_gnls.pdf"), height=6, width=7)
   p1 + geom_point(data=toxkin_dat, aes(y=toxicant,x=Time), color='black') 
   dev.off()
-} # End if(Frequentist==TRUE)
 
 
 ### ### ### ### ### ### ### ### ### ### ### ### 
