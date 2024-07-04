@@ -373,9 +373,10 @@ write.table(loo_varPow$estimates, file_name, col.names=F, append=T, sep=",")
 
 # Read posteriors and posterior predictive distributions from files
 mod_homsc <- read.csv(paste0(dataset,'_toxkin_STAN.csv'),row.names=1)
-mod_hetsc <- read.csv(paste0(dataset,'_toxkin_Id_STAN.csv'),row.names=1)
-mod_hetsc02 <- read.csv(paste0(dataset,'_toxkin_Exp_STAN.csv'),row.names=1)
-mod_hetsc03 <- read.csv(paste0(dataset,'_toxkin_Pow_STAN.csv'),row.names=1)
+mod_hetsc02 <- read.csv(paste0(dataset,'_toxkin_Id_STAN.csv'),row.names=1)
+mod_hetsc03 <- read.csv(paste0(dataset,'_toxkin_Fix_STAN.csv'),row.names=1)
+mod_hetsc04 <- read.csv(paste0(dataset,'_toxkin_Exp_STAN.csv'),row.names=1)
+mod_hetsc05 <- read.csv(paste0(dataset,'_toxkin_Pow_STAN.csv'),row.names=1)
 
 # Set y-axis limit from 2.5% percentile posterior predictive distribution to 1.25 times maximum observed toxicant concentration in the organism
 y_range <- c(min(mod_homsc[grepl("ypred",rownames(mod_homsc)),"X2.5."]),
@@ -386,6 +387,6 @@ y_range <- c(min(mod_homsc[grepl("ypred",rownames(mod_homsc)),"X2.5."]),
 # Save plot with posterior predictive distribution, predicted value and raw data points to file for the various models
 pdf(paste0(dataset,"_PredInt_RSTAN.pdf"), width=11, height=5)
 par(mfrow=c(1,2), mar=c(2.0,2.0,1.5,0), oma=c(1.5,2.25,0,0.5))
-Plot_PostPredDistr(mod_homsc, mod_hetsc, raw_data=toxkin_dat, "Time","toxicant", paste0(toxic," content"), y_lim=y_range, main02="var Id")
-Plot_PostPredDistr(mod_hetsc02, mod_hetsc03, raw_data=toxkin_dat, "Time","toxicant", paste0(toxic," content"), y_lim=y_range, main01="var het02", main02="var het03")
+Plot_PostPredDistr(mod_homsc, mod_hetsc02, raw_data=toxkin_dat, "Time","toxicant", paste0(toxic," content"), y_lim=y_range, main02="var Ident")
+Plot_PostPredDistr(mod_hetsc04, mod_hetsc05, raw_data=toxkin_dat, "Time","toxicant", paste0(toxic," content"), y_lim=y_range, main01="var Exp", main02="var Power")
 dev.off()
