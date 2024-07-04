@@ -33,16 +33,6 @@ if (dataset=="Fcandida_Cd03") {toxkin_dat <- read.csv("Fcandida_Cd_Ardestani2013
   start_nls <- list(C_0=0.07, k_1=0.408, k_2=0.22); toxic <- "Cd"; t_scale <- "_d"; t_d <- 21}
 
 
-#dataset <- 'Algae_Zn_4n4'
-#dataset <- 'Algae_Zn_4n6'
-#dataset <- 'Algae_Mn_4n6'
-#if (dataset=="Algae_Zn_4n4") {toxkin_dat <- read.csv("toxicodynamics4n4v2.txt", sep="\t", header=T)
-#start_nls <- list(C_0=1, k_1=0.618, k_2=0.037); toxic <- "Zn"; t_scale <- "_d"; t_d <- 48}
-#if (dataset=="Algae_Zn_4n6") {toxkin_dat <- read.csv("toxicodynamics4n6vZn.txt", sep="\t", header=T)
-#start_nls <- list(C_0=1, k_1=0.618, k_2=0.037); toxic <- "Zn"; t_scale <- "_d"; t_d <- 48}
-#if (dataset=="Algae_Mn_4n6") {toxkin_dat <- read.csv("toxicodynamics4n6vZnMn.txt", sep="\t", header=T)
-#start_nls <- list(C_0=1, k_1=0.618, k_2=0.037); toxic <- "Mn"; t_scale <- "_d"; t_d <- 48}
-
 if (dataset=="simul") {
   t_d <- 14; start_nls <- list(C_0=1, k_1=0.618, k_2=0.037); toxic <- "Toxicant"; t_scale <- "_d";
   n_row <- 28; #set.seed(95616)
@@ -90,7 +80,7 @@ toxicant.nls <- nls(toxicant~one_compartment(C_0,k_1,k_2,C_exp,Time),
 
 # If frequentist==T, then residual variance models will be fitted using frequentist (non-Bayesian) statistics
 # Otherwise, the user may proceed with fitting models in a Bayesian framework
-Frequentist <- FALSE 
+Frequentist <- TRUE 
 
 if (Frequentist==TRUE){
   toxicant.gnls <- gnls(toxicant~one_compartment(C_0,k_1,k_2,C_exp,Time), start=as.list(coef(toxicant.nls)), 
