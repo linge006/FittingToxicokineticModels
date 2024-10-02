@@ -24,8 +24,8 @@ one_compartment <- function(C_0,k_1,k_2,C_exposure,time,t_e=t_d){
 # Extract coefficient means and standard errors
 
 compute_BAF <- function(summ_toxic.gnls){
-  coef.gnls <- coef(summ_toxic.gnls)
-  sigma_k1 <- coef.gnls['k_1',2]; sigma_k2 <- coef.gnls['k_2',2]
+  coef.gnls <- coef(summ_toxic.gnls) # Extract gnls model coefficients
+  sigma_k1 <- coef.gnls['k_1',2]; sigma_k2 <- coef.gnls['k_2',2] # Extract standard errors of k1 and k2
   
   # Compute k1 and k2 covariance
   sigma_k1k2 <- summ_toxic.gnls$corBeta['k_1','k_2']*sigma_k1*sigma_k2
@@ -36,10 +36,10 @@ compute_BAF <- function(summ_toxic.gnls){
                             2*(sigma_k1k2/prod(coef.gnls[c('k_1','k_2'),1]))^2) # Compute error propagated SE of BAF
   BAF <- data.frame(mean=BAF, se=sigma_BAF, row.names='BAF') # Write mean and se of BAF to BAF object
   return(BAF)
-  #write.table(BAF, paste0(dataset,"_gnls.csv"), append=T, sep=",") # Write mean and se of BAF to file
+  
 } # End compute_BAF()
 
 
-# Resurces for computing prediction intervals:
+# Resources for computing prediction intervals:
   # https://stackoverflow.com/questions/14358811/extract-prediction-band-from-lme-fit
   # https://rpubs.com/Daniel_He/1041063
