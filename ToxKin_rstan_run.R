@@ -33,6 +33,11 @@ stan_toxic_Pow_out.rs <- Run_RSTAN_ToxKin_mod(toxkin_dat,"toxicant","C_exp","Tim
 # appear, then run a simulation with only 1 chain using:
 # stan_toxic_Exp_out.rs <- Run_RSTAN_ToxKin_mod(toxkin_dat, "toxicant","C_exp","Time", pars_d, nls_prior, varExponent=1, n_chains=1); names(stan_toxic_Exp_out.rs)[4] <- "delta" # Change k[3] into delta
 
+# If the following message:
+# "There were 103 divergent transitions after warmup. See
+# https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+# to find out why this is a problem and how to eliminate them."
+# appears, then check the traceplots/chains as saved a couple of lines below in "Chains_..._...pdf"
 
 # Extract model parameter summaries
 
