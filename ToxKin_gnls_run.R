@@ -40,7 +40,8 @@ sapply(list(compute_BAF(summary(toxicant.gnls)), c(sigma=toxicant.gnls$sigma)),
 write.table(summ_toxic.gnls$tTable, paste0(dataset,"_gnls.csv"), append=T, sep=",") # Write output heteroscedastic model with lowest BIC to file 
 sapply(list(compute_BAF(summ_toxic.gnls), c(sigma=summ_toxic.gnls$sigma, delta=coef(summ_toxic.gnls$modelStruct$varStruct, allCoef=TRUE))), 
        function(x) write.table(x, paste0(dataset,"_gnls.csv"), append=T, sep=",", col.names=F)) # Write BAF+sigma heteroscedastic model with lowest BIC to file 
-
+write.table("This file contains the gnls model output for the homoscedastic model and the best heteroscedastic model", 
+            paste0(dataset,"_gnls.csv"), append=T, sep=",", col.names=F, row.names=F) # Describe the model output that the data in the file describes
 
 ### Generate residuals plots (standardized residuals vs fitted values) for all 5 gnls() models
 # A range is set for the y-axis (residuals) and the x-axis (fitted values) using the values of the toxicant
