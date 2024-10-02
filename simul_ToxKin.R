@@ -9,9 +9,6 @@ t_end <- 28; repl <- 4
 
 toxkin_dat <- data.frame(Time=rep(c(0:t_end), each=repl), k_1=runif(repl+t_end*repl,0.5,1.5), k_2=runif(repl+t_end*repl,0.05,0.15), 
                          C_exp=rep(1,repl+t_end*repl), t_d=rep(t_d,repl+t_end*repl), error=runif(repl+t_end*repl,-2,2))
-
-#toxkin_dat <- data.frame(toxkin_dat, toxicant=with(toxkin_dat, one_compartment(1, k_1, k_2, C_exp, Time, t_d) + error)) # Randomize/Simulate "fixed-effects" parameters as well
-
 toxkin_dat <- data.frame(toxkin_dat, pred_toxicant=with(toxkin_dat, one_compartment(2, 1, 0.1, 1, Time, t_d) )) # C_0=2, k_1=1, k_2=0.1, C_exp=1
 toxkin_dat <- data.frame(toxkin_dat, toxicant=with(toxkin_dat, one_compartment(2, 1, 0.1, 1, Time, t_d) + 
                                                      rnorm(nrow(toxkin_dat), 0, pred_toxicant*0.2) ))
