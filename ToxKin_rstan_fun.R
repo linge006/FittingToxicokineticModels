@@ -1,6 +1,8 @@
 
 # Note that Rtools compatible with your R version should be installed for running the rstan package. 
 # It is also recommended to update R and Rtools before installing rstan
+# RSTAN may be installed through running: install.packages("rstan") or install.packages("rstan", repos = c('https://stan-dev.r-universe.dev', getOption("repos")))
+# Python users may like to explore PyStan, the python implementation of STAN
 
 library(rstan)
 ## For execution on a local, multicore CPU with excess RAM we recommend calling
