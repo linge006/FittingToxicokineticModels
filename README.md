@@ -1,1 +1,1 @@
-Download the 6 R files and start running from "Organisms_ToxKin.R". The .csv and .txt contain toxicokinetic data for two different organisms, Gammarus Pulex and Folsomia candida as well as the simulated datasets. 
+Download the 6 .R files and start running from "Organisms_ToxKin.R". The .csv and .txt contain toxicokinetic data for two different organisms, Gammarus Pulex and Folsomia candida as well as the simulated datasets. 
