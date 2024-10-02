@@ -1,1 +1,1 @@
-Download the 6 .R files and start running from "Organisms_ToxKin.R". The .csv and .txt contain toxicokinetic data for _Eisenia fetida_, _Gammarus Pulex_ and _Folsomia candida_ as well as the simulated datasets. 
+Download the 6 .R files and start running from "Organisms_ToxKin.R". The .csv and .txt files contain toxicokinetic data for _Eisenia fetida_, _Gammarus Pulex_ and _Folsomia candida_ as well as the simulated datasets. 
