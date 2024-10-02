@@ -102,4 +102,5 @@ source("ToxKin_rstan_fun.R")
 
 
 # Fit Bayesian generalized nonlinear least squares models to the data
+# This script contains some guidance related to various warning messages
 source("ToxKin_rstan_run.R")
