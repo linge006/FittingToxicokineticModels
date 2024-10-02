@@ -226,7 +226,7 @@ Plot_PostPredDistr <- function(summ_mod01, summ_mod02, raw_data, var_x, var_y, t
   curve(one_compartment(pars[1],pars[2],pars[3],C_exp,x,0.5*x_max), from=0, to=x_max, ylim=y_lim, las=1,
         cex.lab=1.25, cex.axis=1.25, ylab="", xlab="", main=paste0(main01," model"), xaxt='n') # Plot model's predicted values as a curve
   axis(1,seq(0,x_max,0.25*x_max),cex.axis=1.25) # Plot x-axis tick marks
-  polygon(c(t_xyz, rev(t_xyz)), c(c_y2, rev(c_y1)),
+  polygon(c(t_rng, rev(t_rng)), c(c_y2, rev(c_y1)),
           col="lightgrey", lty=0) # Plot 95% credible interval of posterior predictive distribution as a grey shaded area
   points(raw_data[,var_x], raw_data[,var_y], pch=20) # Plot raw data points
   curve(one_compartment(pars[1],pars[2],pars[3],C_exp,x,0.5*x_max), add=T) # Plot model's predicted values as a curve again
@@ -235,7 +235,7 @@ Plot_PostPredDistr <- function(summ_mod01, summ_mod02, raw_data, var_x, var_y, t
   curve(one_compartment(pars_hsk[1],pars_hsk[2],pars_hsk[3],C_exp,x,0.5*x_max), from=0, to=x_max, ylim=y_lim, 
         cex.lab=1.25, cex.axis=1.25, ylab="", xlab="", main=paste0(main02," model"), xaxt='n', yaxt='n') # Plot model's predicted values as a curve
   axis(1,seq(0,x_max,0.25*x_max),cex.axis=1.25) # Plot x-axis tick marks
-  polygon(c(t_xyz, rev(t_xyz)), c(c_y4, rev(c_y3)),
+  polygon(c(t_rng, rev(t_rng)), c(c_y4, rev(c_y3)),
           col="lightgrey", lty=0) # Plot 95% credible interval of posterior predictive distribution as a grey shaded area
   points(raw_data[,var_x], raw_data[,var_y], pch=20) # Plot raw data points
   curve(one_compartment(pars_hsk[1],pars_hsk[2],pars_hsk[3],C_exp,x,0.5*x_max), add=T) # Plot model's predicted values as a curve again
