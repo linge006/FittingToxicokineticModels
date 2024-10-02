@@ -71,6 +71,19 @@ source("ToxKin_gnls_fun.R")
 toxicant.nls <- nls(toxicant~one_compartment(C_0,k_1,k_2,C_exp,Time), 
                     start=start_nls, data=toxkin_dat)
 
+
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ####
+### gnls code for fitting frequentist (i.e. non-Bayesian) models ###
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### #### 
+
+# Fit generalized nonlinear least squares (gnls) models to the data
+source("ToxKin_gnls_run.R")
+
+# Note that the message: 
+# "Error in gnls(toxicant ~ one_compartment(C_0, k_1, k_2, C_exp, Time), : step halving factor reduced below minimum in NLS step"
+# appears if inaccurate starting values for C_0, k_1 and k_2 are provided and may be solved by providing more accurate starting values
+
+
 ### ### ### ### ### ### ### ### ### ### ### ### 
 ### RSTAN code for fitting Bayesian models ####
 ### ### ### ### ### ### ### ### ### ### ### ### 
