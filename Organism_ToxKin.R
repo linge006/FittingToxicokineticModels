@@ -60,16 +60,40 @@ toxkin_dat$C_exp[toxkin_dat$Time > t_d] <- C_expsr # Assign mean exposure concen
 
 head(toxkin_dat) # Show head of data object
 
-# Initialize the one_compartment() and compute_BAF() functions and load the nlme package
-source("ToxKin_gnls_fun.R") 
-
 # Fitting of a nonlinear least squares (nls) model to the data
 # the response variable toxicant is modeled using the one_compartment function with parameters C_0, k_1, k_2 and variables C_exp and Time.
 # start_nls is a list that provides the initial guesses for the C_0, k_1, k_2 parameters in the model. 
 # toxkin_dat is the data.frame object containing the data for fitting the model.txkin_dat contains the toxicant, Time, and t_e variables used in the one_compartment function.
 
+# Initialize the one_compartment() and compute_BAF() functions and load the nlme package
+source("ToxKin_gnls_fun.R") 
+
 toxicant.nls <- nls(toxicant~one_compartment(C_0,k_1,k_2,C_exp,Time), 
                     start=start_nls, data=toxkin_dat)
+
+### ### ### ### ### ### ### ### ### ### ### ### 
+### RSTAN code for fitting Bayesian models ####
+### ### ### ### ### ### ### ### ### ### ### ### 
+
+# Run and initialize the RSTAN models and additional R functions
+source("ToxKin_rstan_fun.R")
+
+### Consideration for RSTAN simulation: plot(dgamma(seq(0,10,0.01),3,1)~seq(0,10,0.01))
+#   for (j in 1:N) y[j] ~ normal(m[j], sqrt(y[j])*sigma_e[no_sigma]);
+
+### y ~ gamma(alpha, beta)
+#   Increment target log probability density with gamma_lupdf(y | alpha, beta).
+
+### real gamma_lpdf(reals y | reals alpha, reals beta)
+#   The log of the gamma density of y given shape alpha and inverse scale beta
+
+
+# Fit Bayesian generalized nonlinear least squares models to the data
+source("ToxKin_rstan_run.R")
+
+
+##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### 
+
 
 # Fitting of a generalized nonlinear least squares (gnls) models to the data
 # variables and parameters are as for the nls model fit
