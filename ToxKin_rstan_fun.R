@@ -52,7 +52,7 @@ transformed parameters {
   real m[N];
   
   for (i in 1:N){
-    m[i] = C_0 + (x[i] < t_d ? k_1/k_2*z*(1-exp(-k_2*x[i])) : k_1/k_2*z*(exp(-k_2*(x[i]-t_d))-exp(-k_2*x[i])));
+    m[i] = C_0 + (x[i] <= t_d ? k[1]/k[2]*z*(1-exp(-k[2]*x[i])) : k[1]/k[2]*z*(exp(-k[2]*(x[i]-t_d))-exp(-k[2]*x[i])));
   } // End of for loop i
   
 } // End of transformed parameters block
