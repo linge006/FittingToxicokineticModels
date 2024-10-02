@@ -9,6 +9,7 @@ library(rstan)
 ## rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores()) #options(mc.cores = NUM_CORES)
 rstan_options(auto_write = TRUE)
+packageVersion("rstan")
 
 # This loo package provides Bayesian model diagnostics such as the approximate leave-one-out cross-validation (LOO-CV). 
 # It primarily focuses on providing methods to evaluate the predictive accuracy and performance of Bayesian models.
@@ -18,91 +19,19 @@ library(loo)
 # It provides a flexible and comprehensive set of plotting functions specifically designed for Bayesian analysis
 library(bayesplot)
 
-print('Initializing RSTAN non-linear one-compartmental model. Note that this may take a few minutes..')
+print('Initializing RSTAN non-linear one-compartmental model. Note that this may take a few minutes...')
 
-mod_OneComp_no_d <- "
-// The data block contains all data that is read in from R
-data {
-  int<lower=0> N; 
-  real x[N]; 
-  real y[N]; 
-  real z; int t_d;
-  int grp[N]; int no_sigma;
-  real mean_C0; real sd_C0;
-  real mean_k1; real sd_k1;
-  real mean_k2; real sd_k2;
-  int varPow; int varExp; int varFix;
-} // End data block
-
-// The parameters block contains all model parameters that need to be estimated
-parameters {
-  real<lower=0> C_0; 
-  real<lower=0> k_1;  
-  real<lower=0> k_2;
-  real<lower=0> sigma_e[no_sigma]; // residual sd
-} // End of parameters block
-
-// The transformed parameters block contains the one-compartmental function for toxicokinetic modeling
-transformed parameters {
-  real m[N];
-  
-  for (i in 1:N){
-    m[i] = C_0 + (x[i] < t_d ? k_1/k_2*z*(1-exp(-k_2*x[i])) : k_1/k_2*z*(exp(-k_2*(x[i]-t_d))-exp(-k_2*x[i])));
-  } // End of for loop i
-  
-} // End of transformed parameters block
-
-// The model block contains the priors for all parameters and the likelihood of the models 
-model {
-  // priors
-  C_0 ~ normal(mean_C0, sd_C0); 
-  k_1 ~ normal(mean_k1, sd_k1); 
-  k_2 ~ normal(mean_k2, sd_k2); 
-  sigma_e ~ cauchy(0,5);
-  
-  // likelihood for Homoscedastic, varIdent and varFixed models
-  if (no_sigma == 1 && varFix==0) for (j in 1:N) y[j] ~ normal(m[j], sigma_e[no_sigma]); // Homoscedastic model
-  if (no_sigma > 1) for (j in 1:N) y[j] ~ normal(m[j], sigma_e[grp[j]]); // varIdent model 
-  if (varFix==1) for (j in 1:N) y[j] ~ normal(m[j], sqrt(y[j])*sigma_e[no_sigma]); // varFixed model
-} // End of model block
-
-// The generated quantities block contains all quantities to be returned in addition to the estimated parameters
-generated quantities {
-  // Initialize (additional) quantities to be generated
-  vector[N] log_lik; // to use loo package and compute waic - the logLikelihood MUST be called log_lik!
-  real pred[N]; // Quantities for fitted values (not including noise/error estimate)
-  real res[N]; // Residuals
-  real ypred[N]; // Predicted values (including noise/error estimate)
-  real BAF; // Bioaccumulation factor
-  
-  // Assign values to the initialized quantities to be returned
-  BAF = k_1/k_2;
-  
-  for (n in 1:N){
-    pred[n] = C_0 + (x[n] < t_d ? k_1/k_2*z*(1-exp(-k_2*x[n])) : k_1/k_2*z*(exp(-k_2*(x[n]-t_d))-exp(-k_2*x[n])));
-    res[n] = y[n] - pred[n];
-    
-    if (no_sigma > 1) {ypred[n] = normal_rng(pred[n], sigma_e[grp[n]]);
-      log_lik[n] = normal_lpdf(y[n] | pred[n], sigma_e[grp[n]]);} // varIdent model
-    if (no_sigma == 1 && varFix==0) {ypred[n] = normal_rng(pred[n], sigma_e[no_sigma]);
-      log_lik[n] = normal_lpdf(y[n] | pred[n], sigma_e[no_sigma]);} // Homoscedastic model
-    if (varFix==1) {ypred[n] = normal_rng(pred[n], sqrt(y[n])*sigma_e[no_sigma]); 
-      log_lik[n] = normal_lpdf(y[n] | pred[n], sqrt(y[n])*sigma_e[no_sigma]);} // varFixed model
-
-    } // End of for loop n
-
-} // End of generated quantities block
-
-"
 #
+
 mod_OneComp_d <- "
 // The data block contains all data that is read in from R
 data {
-  int<lower=0> N; 
+  int<lower=0> N; // Number of observations
   real x[N]; 
   real y[N]; 
   real z; int t_d; 
   int grp[N]; int no_sigma;
+  int<lower=N> P; real pred_t[P]; int s_grp[P];
   real mean_C0; real sd_C0;
   real mean_k1; real sd_k1;
   real mean_k2; real sd_k2;
@@ -112,10 +41,8 @@ data {
 // The parameters block contains all model parameters that need to be estimated
 parameters {
   real<lower=0> C_0; 
-  real<lower=0> k_1;  
-  real<lower=0> k_2;
+  real<lower=0> k[2+varPow+varExp]; // Contains k1 and k2. It might also contain a third k representing the delta parameter in case of exponential and power residual models.
   real<lower=0> sigma_e[no_sigma]; // residual sd
-  real<lower=0> delta;
 } // End of parameters block
 
 // The transformed parameters block contains the one-compartmental function for toxicokinetic modeling
@@ -131,15 +58,17 @@ transformed parameters {
 // The model block contains the priors for all parameters and the likelihood of the models 
 model {
   // priors
-  C_0 ~ normal(mean_C0, sd_C0); 
-  k_1 ~ normal(mean_k1, sd_k1); 
-  k_2 ~ normal(mean_k2, sd_k2); 
-  delta ~  normal(0,1000);
-  sigma_e ~ cauchy(0,5);
+  C_0 ~ normal(mean_C0, sd_C0); // Assign a normal prior to C_0
+  k[1] ~ normal(mean_k1, sd_k1); k[2] ~ normal(mean_k2, sd_k2); // Assign normal priors to k1 and k2 
+  if (varExp+varPow==1) k[3] ~ normal(0,1000); // Assign a normal prior to k3 (i.e. delta); these priors may be chosen differently
+  sigma_e ~ cauchy(0,5); // Assign a half-cauch prior to residual variance parameter sigma
   
   // likelihoods
-  if (varExp==1) for (j in 1:N) y[j] ~ normal(m[j], exp(delta*y[j])*sigma_e[no_sigma]); // varExp model
-  if (varPow==1) for (j in 1:N) y[j] ~ normal(m[j], pow(y[j],delta)*sigma_e[no_sigma]); // varPower model
+  if (no_sigma == 1 && (varFix+varExp+varPow)==0) for (j in 1:N) y[j] ~ normal(m[j], sigma_e[no_sigma]); // Homoscedastic model
+  if (no_sigma > 1) for (j in 1:N) y[j] ~ normal(m[j], sigma_e[grp[j]]); // varIdent model 
+  if (varFix==1) for (j in 1:N) y[j] ~ normal(m[j], sqrt(y[j])*sigma_e[no_sigma]); // varFixed model
+  if (varExp==1) for (j in 1:N) y[j] ~ normal(m[j], exp(k[3]*y[j])*sigma_e[no_sigma]); // varExp model
+  if (varPow==1) for (j in 1:N) y[j] ~ normal(m[j], pow(y[j],k[3])*sigma_e[no_sigma]); // varPower model
 } // End of model block
 
 // The generated quantities block contains all quantities to be returned in addition to the estimated parameters
@@ -148,32 +77,44 @@ generated quantities {
   vector[N] log_lik; // to use loo package and compute waic - the logLikelihood MUST be called log_lik!
   real pred[N]; // Quantities for fitted values (not including noise/error estimate)
   real res[N]; // Residuals
-  real ypred[N]; // Predicted values (including noise/error estimate)
+  real cpred[P]; real ypred[P]; // Predicted values (including noise/error estimate)
   real BAF; // Bioaccumulation factor
   
   // Assign values to the initialized quantities to be returned
-  BAF = k_1/k_2;
-  
+  BAF = k[1]/k[2];
+
   for (n in 1:N){
-    pred[n] = C_0 + (x[n] < t_d ? k_1/k_2*z*(1-exp(-k_2*x[n])) : k_1/k_2*z*(exp(-k_2*(x[n]-t_d))-exp(-k_2*x[n])));
+    pred[n] = C_0 + (x[n] <= t_d ? k[1]/k[2]*z*(1-exp(-k[2]*x[n])) : k[1]/k[2]*z*(exp(-k[2]*(x[n]-t_d))-exp(-k[2]*x[n])));
     res[n] = y[n] - pred[n];
     
-    if (varExp==1) {ypred[n] = normal_rng(pred[n], exp(delta*pred[n])*sigma_e[no_sigma]);
-      log_lik[n] = normal_lpdf(y[n] | pred[n], exp(delta*y[n])*sigma_e[no_sigma]);} // varExp model
-    if (varPow==1) {ypred[n] = normal_rng(pred[n], pow(pred[n],delta)*sigma_e[no_sigma]);
-      log_lik[n] = normal_lpdf(y[n] | pred[n], pow(y[n],delta)*sigma_e[no_sigma]);} // varPower model
+    if (no_sigma > 1) {log_lik[n] = normal_lpdf(y[n] | pred[n], sigma_e[grp[n]]);} // varIdent model
+    if (no_sigma == 1 && (varFix+varExp+varPow)==0) {log_lik[n] = normal_lpdf(y[n] | pred[n], sigma_e[no_sigma]);} // Homoscedastic model
+    if (varFix==1) {log_lik[n] = normal_lpdf(y[n] | pred[n], sqrt(y[n])*sigma_e[no_sigma]);} // varFixed model
+    if (varExp==1) {log_lik[n] = normal_lpdf(y[n] | pred[n], exp(k[3]*y[n])*sigma_e[no_sigma]);} // varExp model
+    if (varPow==1) {log_lik[n] = normal_lpdf(y[n] | pred[n], pow(y[n],k[3])*sigma_e[no_sigma]);} // varPower model
   
     } // End of for loop n
+  
+  for (p in 1:P){
+    cpred[p] = C_0 + (pred_t[p] <= t_d ? k[1]/k[2]*z*(1-exp(-k[2]*pred_t[p])) : k[1]/k[2]*z*(exp(-k[2]*(pred_t[p]-t_d))-exp(-k[2]*pred_t[p])));
+
+    if (no_sigma > 1)               {ypred[p] = normal_rng(cpred[p], sigma_e[s_grp[p]]);} // varId model
+    if (no_sigma == 1 && (varFix+varExp+varPow)==0) {ypred[p] = normal_rng(cpred[p], sigma_e[no_sigma]);} // Homosc model
+    if (varFix==1) {ypred[p] = normal_rng(cpred[p], sqrt(cpred[p])*sigma_e[no_sigma]);} // varFixed model
+    if (varExp==1) {ypred[p] = normal_rng(cpred[p], exp(k[3]*cpred[p])*sigma_e[no_sigma]);} // varExp model
+    if (varPow==1) {ypred[p] = normal_rng(cpred[p], pow(cpred[p],k[3])*sigma_e[no_sigma]);} // varPower model
+    
+  } // End of for loop p
 
 } // End of generated quantities block
 
 "
 
-print("Compiling one-compartmental stan models. Note that this may take a couple of minutes...!")
-stan_mod_Onecomp_no_d <- stan_model(model_code=mod_OneComp_no_d, model_name="mod_OneComp_no_d") # Compile stan model 
-stan_mod_Onecomp_d <- stan_model(model_code=mod_OneComp_d, model_name="mod_OneComp_d") # Compile stan model
+#
 
-print('One-compartmental RSTAN models have been compiled.')
+print("Compiling one-compartmental stan model. Note that this may take a couple of minutes...!")
+stan_mod_Onecomp_d <- stan_model(model_code=mod_OneComp_d, model_name="mod_OneComp_d") # Compile stan model
+print('One-compartmental RSTAN model has been compiled.')
 
 #
 
@@ -315,5 +256,85 @@ compute_loo <- function(stan_out.rs){
   ltest <- loo(loglik_mod.rs, r_eff=r_eff, cores=1) # Compute the LOOIC using extracted log-likelihood and r_eff using a single core (cores=1).
   return(ltest) # Return LOOIC
 } # End of compute_loo()
+
+
+
+
+##### #####
+
+mod_OneComp_no_d <- "
+// The data block contains all data that is read in from R
+data {
+  int<lower=0> N; 
+  real x[N]; 
+  real y[N]; 
+  real z; int t_d;
+  int grp[N]; int no_sigma;
+  real mean_C0; real sd_C0;
+  real mean_k1; real sd_k1;
+  real mean_k2; real sd_k2;
+  int varPow; int varExp; int varFix;
+} // End data block
+
+// The parameters block contains all model parameters that need to be estimated
+parameters {
+  real<lower=0> C_0; 
+  real<lower=0> k_1;  
+  real<lower=0> k_2;
+  real<lower=0> sigma_e[no_sigma]; // residual sd
+} // End of parameters block
+
+// The transformed parameters block contains the one-compartmental function for toxicokinetic modeling
+transformed parameters {
+  real m[N];
+  
+  for (i in 1:N){
+    m[i] = C_0 + (x[i] < t_d ? k_1/k_2*z*(1-exp(-k_2*x[i])) : k_1/k_2*z*(exp(-k_2*(x[i]-t_d))-exp(-k_2*x[i])));
+  } // End of for loop i
+  
+} // End of transformed parameters block
+
+// The model block contains the priors for all parameters and the likelihood of the models 
+model {
+  // priors
+  C_0 ~ normal(mean_C0, sd_C0); 
+  k_1 ~ normal(mean_k1, sd_k1); 
+  k_2 ~ normal(mean_k2, sd_k2); 
+  sigma_e ~ cauchy(0,5);
+  
+  // likelihood for Homoscedastic, varIdent and varFixed models
+  if (no_sigma == 1 && varFix==0) for (j in 1:N) y[j] ~ normal(m[j], sigma_e[no_sigma]); // Homoscedastic model
+  if (no_sigma > 1) for (j in 1:N) y[j] ~ normal(m[j], sigma_e[grp[j]]); // varIdent model 
+  if (varFix==1) for (j in 1:N) y[j] ~ normal(m[j], sqrt(y[j])*sigma_e[no_sigma]); // varFixed model
+} // End of model block
+
+// The generated quantities block contains all quantities to be returned in addition to the estimated parameters
+generated quantities {
+  // Initialize (additional) quantities to be generated
+  vector[N] log_lik; // to use loo package and compute waic - the logLikelihood MUST be called log_lik!
+  real pred[N]; // Quantities for fitted values (not including noise/error estimate)
+  real res[N]; // Residuals
+  real ypred[N]; // Predicted values (including noise/error estimate)
+  real BAF; // Bioaccumulation factor
+  
+  // Assign values to the initialized quantities to be returned
+  BAF = k_1/k_2;
+  
+  for (n in 1:N){
+    pred[n] = C_0 + (x[n] < t_d ? k_1/k_2*z*(1-exp(-k_2*x[n])) : k_1/k_2*z*(exp(-k_2*(x[n]-t_d))-exp(-k_2*x[n])));
+    res[n] = y[n] - pred[n];
+    
+    if (no_sigma > 1) {ypred[n] = normal_rng(pred[n], sigma_e[grp[n]]);
+      log_lik[n] = normal_lpdf(y[n] | pred[n], sigma_e[grp[n]]);} // varIdent model
+    if (no_sigma == 1 && varFix==0) {ypred[n] = normal_rng(pred[n], sigma_e[no_sigma]);
+      log_lik[n] = normal_lpdf(y[n] | pred[n], sigma_e[no_sigma]);} // Homoscedastic model
+    if (varFix==1) {ypred[n] = normal_rng(pred[n], sqrt(y[n])*sigma_e[no_sigma]); 
+      log_lik[n] = normal_lpdf(y[n] | pred[n], sqrt(y[n])*sigma_e[no_sigma]);} // varFixed model
+
+    } // End of for loop n
+
+} // End of generated quantities block
+
+"
 
 print('Functions for generating RSTAN objects, extracting residuals from RSTAN objects and computing logLik and LOOIC has been compiled.')
