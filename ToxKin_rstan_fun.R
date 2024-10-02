@@ -21,7 +21,7 @@ library(loo)
 # It provides a flexible and comprehensive set of plotting functions specifically designed for Bayesian analysis
 library(bayesplot)
 
-print('Initializing RSTAN non-linear one-compartmental model. Note that this may take a few minutes...')
+print('Initializing RSTAN non-linear one-compartmental model.')
 
 #
 
