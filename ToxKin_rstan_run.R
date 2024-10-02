@@ -10,7 +10,7 @@ pars_no_d <- c("C_0","k","BAF","sigma_e","pred","res","ypred","log_lik") # Initi
 pars_d <- c("C_0","k","BAF","sigma_e","pred","res","ypred","log_lik") # Initialize parameters and generated quantities to be returned for varExp and varPower models
 
 # Take means and standard errors from nls model as priors for mean and standard deviation for C_0, k_1 and k_2 parameters of RSTAN model fit 
-nls_prior <- abs(summary(toxicant.nls)$tTable[,1:2]); colnames(nls_prior) <- c("Value","Std.Error") 
+nls_prior <- abs(summary(toxicant.nls)$coefficients[,1:2]); colnames(nls_prior) <- c("Value","Std.Error") 
 
 
 # Fit Homoscedastic, varId, varFix, varExp and varPow models using RSTAN
