@@ -20,6 +20,20 @@ stan_toxic_Fix_out.rs <- Run_RSTAN_ToxKin_mod(toxkin_dat,"toxicant","C_exp","Tim
 stan_toxic_Exp_out.rs <- Run_RSTAN_ToxKin_mod(toxkin_dat,"toxicant","C_exp","Time",pars_d,nls_prior, varExponent=1); names(stan_toxic_Exp_out.rs)[4] <- "delta" # Change k[3] into delta
 stan_toxic_Pow_out.rs <- Run_RSTAN_ToxKin_mod(toxkin_dat,"toxicant","C_exp","Time",pars_d,nls_prior, varPower=1); names(stan_toxic_Pow_out.rs)[4] <- "delta" # Change k[3] into delta
 
+# If messages such as 
+# "here are whatever error messages were returned
+# [[1]]
+# Stan model 'mod_OneComp_d' does not contain samples.
+# [[2]]
+# Stan model 'mod_OneComp_d' does not contain samples."
+# or
+# "Warning message:
+# In .local(object, ...) :
+# some chains had errors; consider specifying chains = 1 to debug"
+# appear, then run a simulation with only 1 chain using:
+# stan_toxic_Exp_out.rs <- Run_RSTAN_ToxKin_mod(toxkin_dat, "toxicant","C_exp","Time", pars_d, nls_prior, varExponent=1, n_chains=1); names(stan_toxic_Exp_out.rs)[4] <- "delta" # Change k[3] into delta
+
+
 # Extract model parameter summaries
 
 summ_toxic_rs <- summary(stan_toxic_out.rs,pars=pars_no_d[1:4])$summary 
@@ -159,6 +173,11 @@ loo_varId <- compute_loo(stan_toxic_Id_out.rs)
 loo_varFix <- compute_loo(stan_toxic_Fix_out.rs)
 loo_varExp <- compute_loo(stan_toxic_Exp_out.rs)
 loo_varPow <- compute_loo(stan_toxic_Pow_out.rs)
+
+# Note that the message:
+# "Some Pareto k diagnostic values are too high. See help('pareto-k-diagnostic') for details."
+# is a warning related to the computation of the WAIC, not an error. 
+# If this warning message is shown, then only use the LOOIC
 
 # Compare models using logLik
 loo_compare(loo_homosk,loo_varId)
